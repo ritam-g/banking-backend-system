@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const { use } = require("react");
 const userSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -10,8 +9,7 @@ const userSchema = new mongoose.Schema({
         match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
             'Please fill a valid email address'],
         unique: [true, "email all ready exiest"]
-    }
-    ,
+    },
     name: {
         type: String,
         required: [true, "name is required for creating account"],
@@ -24,20 +22,23 @@ const userSchema = new mongoose.Schema({
         select: false            //! WARNING it will not come those quesry which is reated select:false
         //! it wil come whey we say 
     }
-}, {
-    timestamps: true
-}
+},
+    { timestamps: true }//NOTE - //! it will show hwen user updated tiem table  
 )
+//! it always run fast 
 
-//! pre save hook for hashing password || not rusing for now thi sproject
-userSchema.pre('save', async function (next) {
-if (!this.isModified('password')) {return next() }
-try {
-const salt = await bcrypt.genSalt(10)
-this.password = await bcrypt.hash(this.password, salt)
-next() }
-catch (error) {
-next(error)}
+userSchema.pre("save",async function (next) {
+    if(!this.isModified("password")){
+        return next()
+    }
+    const hash=await bcrypt.hash(this.password,10)
+    this.password=hash
+    return next()
 })
+
+userSchema.methods.comparePassword=async function (password) {
+    return await bcrypt.compare(password,this.password)
+}
+
 
 module.exports = mongoose.model('user', userSchema)
