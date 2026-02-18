@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Verify the connection configuration
+//! Verify the connection configuration
 transporter.verify((error, success) => {
   if (error) {
     console.error('Error connecting to email server:', error);
@@ -21,7 +21,7 @@ transporter.verify((error, success) => {
   }
 });
 
-// Function to send email
+//! Function to send email
 const sendEmail = async (to, subject, text, html) => {
   try {
     const info = await transporter.sendMail({
@@ -39,4 +39,17 @@ const sendEmail = async (to, subject, text, html) => {
   }
 };
 
-module.exports = sendEmail;
+async function sendRegiestrationEmail(email, name) {
+  const subject = "Welcome to Backend Ledger!";
+  const html = `
+    <h2>Welcome ${name}!</h2>
+    <p>Thank you for registering with Backend Ledger.</p>
+  `;
+  const text = `Welcome ${name}!\n\nThank you for registering with Backend Ledger.`
+
+
+  await sendEmail(email, subject, text, html);
+  console.log(`mail send to ${email}`);
+}
+
+module.exports = { sendRegiestrationEmail };
