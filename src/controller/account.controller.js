@@ -1,6 +1,13 @@
-const accountsModel = require("../models/accounts.model");
+const accountModel = require("../models/account.model")
 
-async function accountFunction(req,res) {
-    
+async function createAccountController(req,res) {
+    const userId=req.user
+
+  const account= await accountModel.create({
+        user:userId
+    })
+    return res.status(201).json({
+        message:'new account is created ',account
+    })
 }
-module.exports={accountFunction}
+module.exports={createAccountController}

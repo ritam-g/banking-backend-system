@@ -66,7 +66,7 @@ async function userLoginController(req, res) {
         } catch (err) {
             return res.status(500).json({ message: 'JWT issue' });
         }
-
+        
         res.cookie('token', token);
 
         //! Send login notification email (async — non-blocking)

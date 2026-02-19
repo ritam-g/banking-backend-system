@@ -1,10 +1,16 @@
 const express = require('express');
-const { accountFunction } = require('../controller/account.controller');
+const { authMiddleware } = require('../middlewares/auth.middleware');
+const { createAccountController } = require('../controller/account.controller');
 
 
 const accountRoute = express.Router()
 
-accountRoute.get('/',accountFunction)
+/**
+ * post  /api/accounts
+ * create new account for user
+ * protected route
+ */
+accountRoute.post('/create',authMiddleware,createAccountController)
 
 
 module.exports=accountRoute
