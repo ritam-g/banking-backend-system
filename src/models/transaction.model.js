@@ -14,7 +14,7 @@ const transactionSchema = new mongoose.Schema({
         index: true,
         requird: [true, 'toAccount is required']
     },
-    accountStatus: {
+    status: {
         type: String,
         enum: {
             values: ["PENDING", "COMPLETED", "FAILED", "CANCELED", "REVERSED", "REFUNDED"],

@@ -1,4 +1,5 @@
 const accountModel = require("../models/account.model");
+const transactionModel = require("../models/transaction.model");
 
 /**
  * - Create a new transaction
@@ -42,6 +43,53 @@ async function createTransaction(req, res) {
             })
         }
 
+        /**
+         * check idmpetency key with status
+         */
+
+        const existingTransaction = await transactionModel.findOne({ idempotencyKey });
+
+        if (existingTransaction) {
+            const { status } = existingTransaction;
+
+            const statusResponseMap = {
+                COMPLETED: { code: 200, message: "Transaction already completed successfully." },
+                FAILED: { code: 400, message: "Transaction previously failed." },
+                CANCELED: { code: 400, message: "Transaction was canceled." },
+                REFUNDED: { code: 200, message: "Transaction has been refunded." },
+                PENDING: { code: 202, message: "Transaction is still processing." },
+                REVERSED: { code: 200, message: "Transaction was reversed." }
+            };
+
+            const response = statusResponseMap[status];
+
+            if (response) {
+                return res.status(response.code).json({
+                    message: response.message,
+                    status
+                });
+            }
+        }
+
+        /**
+         * Check account status
+         */
+        if (formAccountDetails.status !== "ACTIVE" || toAccountDetails.status !== "ACTIVE") {
+            return res.status(500).json({
+                message:'invalid details'
+            })
+        }
+        /**!SECTION
+         * Derive sender balance from led
+         */
+
+        const balance=await formAccount.getBalance()
+        if(balance<amount){
+            return res.status(400).json({
+                message:`'insufficent balance' current balance is ${balance}`
+            })
+        }
+
     } catch (err) {
         console.log(err);
         return res.status(500).json({
@@ -51,4 +99,4 @@ async function createTransaction(req, res) {
     }
 }
 
-module.exports={createTransaction}
+module.exports = { createTransaction }
