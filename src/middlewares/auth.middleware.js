@@ -17,7 +17,7 @@ async function authMiddleware(req, res, next) {
 
         if (!user) return res.status(401).json({ message: 'unauthorized user' })
 
-        req.user = decode.id
+        req.user = decode
         next()
     } catch (err) {
         console.log(err);

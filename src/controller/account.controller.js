@@ -1,7 +1,7 @@
 const accountModel = require("../models/account.model")
 
 async function createAccountController(req,res) {
-    const userId=req.user
+    const userId=req.user.id
 
   const account= await accountModel.create({
         user:userId

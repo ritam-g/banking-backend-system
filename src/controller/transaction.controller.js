@@ -1,5 +1,7 @@
 const accountModel = require("../models/account.model");
+const ledgerModel = require("../models/ledger.model");
 const transactionModel = require("../models/transaction.model");
+const { sendTransactionEmail } = require("../services/email.service");
 
 /**
  * - Create a new transaction
@@ -76,19 +78,64 @@ async function createTransaction(req, res) {
          */
         if (formAccountDetails.status !== "ACTIVE" || toAccountDetails.status !== "ACTIVE") {
             return res.status(500).json({
-                message:'invalid details'
+                message: 'invalid details'
             })
         }
         /**!SECTION
          * Derive sender balance from led
          */
 
-        const balance=await formAccount.getBalance()
-        if(balance<amount){
+        const balance = await formAccountDetails.getBalance()
+        if (balance < amount) {
             return res.status(400).json({
-                message:`'insufficent balance' current balance is ${balance}`
+                message: `'insufficent balance' current balance is ${balance}`
             })
         }
+        /**
+         * SESSION PART PRIVIDE BY MONGODB
+         */
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        const transaction = await transactionModel.create({
+            formAccount, toAccount, amount, status: "PENDING", idempotencyKey
+        }, { session })
+        //NOTE - SESSION HAVE TO PROVIDE BECAUSE OF THE WE NEED MONGODB SESSION ABILITY TO DO THIS
+
+        /**!SECTION
+         * * 6. Create DEBIT ledger entry
+         */
+        const debitLedgerEntry = await ledgerModel.create({
+            account: formAccount,
+            ammount: amount,
+            transaction: transaction._id,
+            type: "DEBIT"
+        }, { session })
+
+        const creditLedgerEntry = await ledgerModel.create({
+            account: toAccount,
+            type: "CREDIT",
+            ammount: amount,
+            transaction: transaction._id
+
+        })
+
+        transaction.status = "COMPLETED"
+        await transaction.save({ session })
+
+        await session.commitTransaction();
+        session.endSession();
+
+
+        /**!SECTION
+         * send email notification 
+         */
+        const transactionId = `TXN-${Date.now()}`
+        await sendTransactionEmail(req.user.email, req.user.name, amount, toAccount)
+        return res.status(201).json({ 
+            message: "transaction sucessfully completed",
+            transaction
+        })
 
     } catch (err) {
         console.log(err);

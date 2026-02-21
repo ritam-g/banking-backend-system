@@ -7,3 +7,6 @@ const transactionRoute=express.Router()
 
 transactionRoute.post('/',authMiddleware,createTransaction)
 
+
+module.exports=transactionRoute
+

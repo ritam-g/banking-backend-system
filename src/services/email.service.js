@@ -65,7 +65,7 @@ const sendEmail = async (to, subject, text, html) => {
  * @param {string} email - Recipient email address
  * @param {string} name  - User's display name
  */
-async function sendRegistrationEmail({email, name}) {
+async function sendRegistrationEmail({ email, name }) {
   const subject = '🎉 Welcome to Backend Ledger — Your Account is Ready!';
 
   const text = `
@@ -248,7 +248,7 @@ The Backend Ledger Team
  * @param {string} email - Recipient email address
  * @param {string} name  - User's display name (can be email if name not available)
  */
-async function sendLoginEmail({email, name}) {
+async function sendLoginEmail({ email, name }) {
   const loginTime = new Date().toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
     weekday: 'long',
@@ -448,7 +448,245 @@ The Backend Ledger Security Team
 }
 
 
+
+// ══════════════════════════════════════════════
+//  3. TRANSACTION SUCCESS EMAIL
+// ══════════════════════════════════════════════
+
+/**
+ * Sends a transaction confirmation email.
+ * Triggered when money is successfully transferred.
+ * 
+ * @param {Object} param0
+ * @param {string} param0.email      - Recipient email
+ * @param {string} param0.name       - User name
+ * @param {number} param0.amount     - Transaction amount
+ * @param {string} param0.type       - "sent" | "received"
+ * @param {string} param0.reference  - Transaction reference ID
+ */
+// ══════════════════════════════════════════════
+//  3. TRANSACTION SUCCESS EMAIL
+// ══════════════════════════════════════════════
+
+async function sendTransactionEmail(userEmail, name, amount, toAccount) {
+
+  const reference = `TXN-${Date.now()}`;
+
+  const transactionTime = new Date().toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+  });
+
+  const subject = `💸 ₹${amount} Sent Successfully`;
+
+  const text = `
+Hi ${name},
+
+Your transaction was successful.
+
+Amount: ₹${amount}
+To Account: ${toAccount}
+Reference ID: ${reference}
+Time: ${transactionTime}
+
+If you did not authorize this transaction, please contact support immediately.
+
+Backend Ledger Team
+  `.trim();
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:Segoe UI,Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;background:#0f0f1a;">
+<tr>
+<td align="center">
+
+<table width="600" cellpadding="0" cellspacing="0"
+style="background:#1a1a2e;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+
+<tr>
+<td style="background:linear-gradient(135deg,#ff512f,#dd2476);padding:45px;text-align:center;">
+<div style="font-size:40px;">💸</div>
+<h1 style="color:#ffffff;margin:10px 0 0 0;font-size:24px;">
+Transaction Successful
+</h1>
+</td>
+</tr>
+
+<tr>
+<td style="padding:40px;">
+<h2 style="color:#e0e0ff;margin:0 0 10px 0;">Hi ${name} 👋</h2>
+
+<table width="100%" cellpadding="0" cellspacing="0"
+style="margin-top:20px;background:#222240;border-radius:12px;padding:20px;">
+
+<tr>
+<td style="color:#8888aa;font-size:13px;">Amount</td>
+<td style="color:#ff6b6b;font-weight:700;text-align:right;">₹${amount}</td>
+</tr>
+
+<tr>
+<td style="color:#8888aa;font-size:13px;padding-top:10px;">To Account</td>
+<td style="color:#ffffff;text-align:right;padding-top:10px;">${toAccount}</td>
+</tr>
+
+<tr>
+<td style="color:#8888aa;font-size:13px;padding-top:10px;">Reference ID</td>
+<td style="color:#ffffff;text-align:right;padding-top:10px;">${reference}</td>
+</tr>
+
+<tr>
+<td style="color:#8888aa;font-size:13px;padding-top:10px;">Time</td>
+<td style="color:#ffffff;text-align:right;padding-top:10px;">${transactionTime}</td>
+</tr>
+
+</table>
+
+<p style="color:#777799;font-size:13px;margin-top:30px;">
+If you did not authorize this transaction, please contact support immediately.
+</p>
+
+</td>
+</tr>
+
+<tr>
+<td style="padding:20px;text-align:center;color:#444466;font-size:12px;">
+© ${new Date().getFullYear()} Backend Ledger · Secure Banking
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+</body>
+</html>
+`;
+
+  await sendEmail(userEmail, subject, text, html);
+
+  console.log(`📧 Transaction email sent to ${userEmail}`);
+}
+
+// ══════════════════════════════════════════════
+//  4. TRANSACTION FAILED EMAIL
+// ══════════════════════════════════════════════
+
+async function sendTransactionFailedEmail(userEmail, name, amount, toAccount, reason) {
+
+  const reference = `TXN-${Date.now()}`;
+  
+  const failedTime = new Date().toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+  });
+
+  const subject = `❌ Transaction Failed — ₹${amount}`;
+
+  const text = `
+Hi ${name},
+
+Unfortunately, your recent transaction could not be completed.
+
+Amount: ₹${amount}
+To Account: ${toAccount}
+Reference ID: ${reference}
+Time: ${failedTime}
+
+Reason: ${reason}
+
+No money has been deducted from your account.
+
+If you continue to face issues, please contact support.
+
+Backend Ledger Team
+  `.trim();
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:Segoe UI,Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;background:#0f0f1a;">
+<tr>
+<td align="center">
+
+<table width="600" cellpadding="0" cellspacing="0"
+style="background:#1a1a2e;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+
+<tr>
+<td style="background:linear-gradient(135deg,#ff416c,#ff4b2b);padding:45px;text-align:center;">
+<div style="font-size:40px;">❌</div>
+<h1 style="color:#ffffff;margin:10px 0 0 0;font-size:24px;">
+Transaction Failed
+</h1>
+</td>
+</tr>
+
+<tr>
+<td style="padding:40px;">
+<h2 style="color:#e0e0ff;margin:0 0 10px 0;">Hi ${name} 👋</h2>
+
+<p style="color:#ff6b6b;font-size:15px;">
+We were unable to process your transaction.
+</p>
+
+<table width="100%" cellpadding="0" cellspacing="0"
+style="margin-top:20px;background:#2a1a1a;border-radius:12px;padding:20px;">
+
+<tr>
+<td style="color:#8888aa;font-size:13px;">Amount</td>
+<td style="color:#ff6b6b;font-weight:700;text-align:right;">₹${amount}</td>
+</tr>
+
+<tr>
+<td style="color:#8888aa;font-size:13px;padding-top:10px;">To Account</td>
+<td style="color:#ffffff;text-align:right;padding-top:10px;">${toAccount}</td>
+</tr>
+
+<tr>
+<td style="color:#8888aa;font-size:13px;padding-top:10px;">Reference ID</td>
+<td style="color:#ffffff;text-align:right;padding-top:10px;">${reference}</td>
+</tr>
+
+<tr>
+<td style="color:#8888aa;font-size:13px;padding-top:10px;">Time</td>
+<td style="color:#ffffff;text-align:right;padding-top:10px;">${failedTime}</td>
+</tr>
+
+<tr>
+<td style="color:#8888aa;font-size:13px;padding-top:10px;">Reason</td>
+<td style="color:#ff9a9a;text-align:right;padding-top:10px;">${reason}</td>
+</tr>
+
+</table>
+
+<p style="color:#9999bb;font-size:13px;margin-top:30px;">
+Good news: No amount has been deducted from your account.
+</p>
+
+</td>
+</tr>
+
+<tr>
+<td style="padding:20px;text-align:center;color:#444466;font-size:12px;">
+© ${new Date().getFullYear()} Backend Ledger · Secure Banking
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+</body>
+</html>
+`;
+
+  await sendEmail(userEmail, subject, text, html);
+
+  console.log(`📧 Transaction failed email sent to ${userEmail}`);
+}
 // ──────────────────────────────────────────────
 //  MODULE EXPORTS
 // ──────────────────────────────────────────────
-module.exports = { sendRegistrationEmail, sendLoginEmail };
+module.exports = { sendRegistrationEmail, sendLoginEmail,sendTransactionEmail,sendTransactionFailedEmail };
