@@ -9,9 +9,9 @@ const ledgerSchema = new mongoose.Schema({
         immutable: true
 
     },
-    ammount: {
+    amount: {
         type: Number,
-        required: [true, 'ammount is required for creating ledger'],
+        required: [true, 'amount is required for creating ledger'],
         immutable: true
     },
     transaction: {
@@ -48,10 +48,10 @@ ledgerSchema.pre('deleteMany', preventLedgerModification);
 ledgerSchema.pre('findOneAndDelete', preventLedgerModification);
 
 
-ledgerSchema.pre('remove',preventLedgerModification)
-ledgerSchema.pre('updateOne',preventLedgerModification)
-ledgerSchema.pre('replaceOne',preventLedgerModification)
-ledgerSchema.pre('updateMany',preventLedgerModification)
+ledgerSchema.pre('remove', preventLedgerModification)
+ledgerSchema.pre('updateOne', preventLedgerModification)
+ledgerSchema.pre('replaceOne', preventLedgerModification)
+ledgerSchema.pre('updateMany', preventLedgerModification)
 
 
 module.exports = mongoose.model('ledger', ledgerSchema)

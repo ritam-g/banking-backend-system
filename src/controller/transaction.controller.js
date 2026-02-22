@@ -22,24 +22,24 @@ async function createTransaction(req, res) {
         /**
          * VALIDATON CHECKS 
          */
-        const { formAccount, toAccount, amount, idempotencyKey } = req.body
-        if (!formAccount || !toAccount || !amount || !idempotencyKey) {
+        const { fromAccount, toAccount, amount, idempotencyKey } = req.body
+        if (!fromAccount || !toAccount || !amount || !idempotencyKey) {
             console.log('user given invalid input');
 
             return res.status(400).json({
-                message: 'All fields are required formAccount, toAccount,  amount, idempotencyKey'
+                message: 'All fields are required fromAccount, toAccount,  amount, idempotencyKey'
             })
 
         }
-        if (formAccount === toAccount) {
+        if (fromAccount === toAccount) {
             return res.status(400).json({
                 message: 'fromAccount and toAccount cannot be same'
             })
         }
-        const formAccountDetails = await accountModel.findById(formAccount)
+        const fromAccountDetails = await accountModel.findById(fromAccount)
         const toAccountDetails = await accountModel.findById(toAccount)
 
-        if (!formAccountDetails || !toAccountDetails) {
+        if (!fromAccountDetails || !toAccountDetails) {
             return res.status(404).json({
                 message: 'fromAccount or toAccount not found'
             })
@@ -76,7 +76,7 @@ async function createTransaction(req, res) {
         /**
          * Check account status
          */
-        if (formAccountDetails.status !== "ACTIVE" || toAccountDetails.status !== "ACTIVE") {
+        if (fromAccountDetails.status !== "ACTIVE" || toAccountDetails.status !== "ACTIVE") {
             return res.status(500).json({
                 message: 'invalid details'
             })
@@ -85,10 +85,10 @@ async function createTransaction(req, res) {
          * Derive sender balance from led
          */
 
-        const balance = await formAccountDetails.getBalance()
+        const balance = await fromAccountDetails.getBalance()
         if (balance < amount) {
             return res.status(400).json({
-                message: `'insufficent balance' current balance is ${balance}`
+                message: `'insufficient balance' current balance is ${balance}`
             })
         }
         /**
@@ -97,31 +97,31 @@ async function createTransaction(req, res) {
         const session = await mongoose.startSession();
         session.startTransaction();
 
-        const transaction = await transactionModel.create({
-            formAccount, toAccount, amount, status: "PENDING", idempotencyKey
-        }, { session })
+        const transaction = await transactionModel.create([{
+            fromAccount, toAccount, amount, status: "PENDING", idempotencyKey
+        }], { session })
         //NOTE - SESSION HAVE TO PROVIDE BECAUSE OF THE WE NEED MONGODB SESSION ABILITY TO DO THIS
 
         /**!SECTION
          * * 6. Create DEBIT ledger entry
          */
-        const debitLedgerEntry = await ledgerModel.create({
-            account: formAccount,
-            ammount: amount,
-            transaction: transaction._id,
+        const debitLedgerEntry = await ledgerModel.create([{
+            account: fromAccount,
+            amount: amount,
+            transaction: transaction[0]._id,
             type: "DEBIT"
-        }, { session })
+        }], { session })
 
-        const creditLedgerEntry = await ledgerModel.create({
+        const creditLedgerEntry = await ledgerModel.create([{
             account: toAccount,
             type: "CREDIT",
-            ammount: amount,
-            transaction: transaction._id
+            amount: amount,
+            transaction: transaction[0]._id
 
-        })
+        }], { session })
 
-        transaction.status = "COMPLETED"
-        await transaction.save({ session })
+        transaction[0].status = "COMPLETED"
+        await transaction[0].save({ session })
 
         await session.commitTransaction();
         session.endSession();
@@ -133,8 +133,8 @@ async function createTransaction(req, res) {
         const transactionId = `TXN-${Date.now()}`
         await sendTransactionEmail(req.user.email, req.user.name, amount, toAccount)
         return res.status(201).json({
-            message: "transaction sucessfully completed",
-            transaction
+            message: "transaction successfully completed",
+            transaction: transaction[0]
         })
 
     } catch (err) {
@@ -176,22 +176,22 @@ async function createInitialFundTransaction(req, res) {
 
         const transaction = new transactionModel({
             fromAccount: fromUserAccount._id,
-            toAccount,
-            amount:amount,
+            toAccount: toAccountDetails._id,
+            amount: amount,
             idempotencyKey,
             status: "PENDING"
         })
 
         const debitLedgerEntry = await ledgerModel.create([{
             account: fromUserAccount._id,
-            ammount: amount,
+            amount: amount,
             transaction: transaction._id,
             type: "DEBIT"
         }], { session })
 
         const creditLedgerEntry = await ledgerModel.create([{
-            account: toAccount,
-            ammount: amount,
+            account: toAccountDetails._id,
+            amount: amount,
             transaction: transaction._id,
             type: "CREDIT"
         }], { session })
@@ -209,9 +209,9 @@ async function createInitialFundTransaction(req, res) {
     } catch (err) {
         console.log(err);
         return res.status(404).json({
-            message:"something went wrong "
+            message: "something went wrong "
         })
-        
+
     }
 
 }

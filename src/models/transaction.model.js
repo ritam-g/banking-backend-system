@@ -2,17 +2,17 @@ const mongoose = require("mongoose");
 const { authMiddleware } = require("../middlewares/auth.middleware");
 
 const transactionSchema = new mongoose.Schema({
-    formAccount: {
+    fromAccount: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "account",
         index: true,
-        requird: [true, 'fromAccount is required']
+        required: [true, 'fromAccount is required']
     },
     toAccount: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "account",
         index: true,
-        requird: [true, 'toAccount is required']
+        required: [true, 'toAccount is required']
     },
     status: {
         type: String,
