@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
@@ -14,25 +15,33 @@ app.use(express.json());
 app.use(cookieParser());
 
 /**
- * Importing routes
+ * API Routes
  */
 const authRoutes = require('./routes/auth.routes');
 const accountRoute = require('./routes/account.routes');
 const transactionRoute = require('./routes/transaction.routes');
 
-/**
- * API routes
- */
 app.use('/api/auth', authRoutes);
 app.use('/api/accounts', accountRoute);
 app.use('/api/transaction', transactionRoute);
 
-// Serve frontend in production
-const path = require('path');
-app.use(express.static(path.join(__dirname, '..', 'client', 'dist')));
-app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
+/**
+ * Production — serve frontend static files
+ * In production: `npm run build` creates client/dist
+ * The backend serves those files + SPA fallback
+ */
+const frontendPath = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(frontendPath));
+
+// SPA fallback for client-side routing
+app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+        const indexPath = path.join(frontendPath, 'index.html');
+        res.sendFile(indexPath, (err) => {
+            if (err) next();
+        });
+    } else {
+        next();
     }
 });
 
