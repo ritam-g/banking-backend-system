@@ -1,17 +1,19 @@
 const express = require('express');
-const { userRegiesterController, userLoginController } = require('../controller/auth.controller');
-const userModel = require('../models/user.model');
+const { userRegiesterController, userLoginController, getMeController, logoutController } = require('../controller/auth.controller');
+const { authMiddleware } = require('../middlewares/auth.middleware');
 
-const authRoute = express.Router()
+const authRoute = express.Router();
 
-/** api is         //! /api/auth/register       */
-authRoute.post('/register', userRegiesterController)
+/** POST /api/auth/register */
+authRoute.post('/register', userRegiesterController);
 
-/** 
- * methode post
- * acept user email pass
- * /api/auth/login
-*/
-authRoute.post('/login', userLoginController)
+/** POST /api/auth/login */
+authRoute.post('/login', userLoginController);
 
-module.exports = authRoute
+/** GET /api/auth/me — get current user */
+authRoute.get('/me', authMiddleware, getMeController);
+
+/** POST /api/auth/logout */
+authRoute.post('/logout', authMiddleware, logoutController);
+
+module.exports = authRoute;
