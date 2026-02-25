@@ -20,7 +20,13 @@ async function userRegiesterController(req, res) {
             { expiresIn: '3d' }
         );
 
-        res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 3 * 24 * 60 * 60 * 1000 });
+        const isProduction = process.env.NODE_ENV === 'production';
+        res.cookie('token', token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: isProduction,
+            maxAge: 3 * 24 * 60 * 60 * 1000
+        });
 
         // Async email — non-blocking
         sendRegistrationEmail({ email, name });

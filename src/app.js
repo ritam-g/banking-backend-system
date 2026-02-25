@@ -27,22 +27,23 @@ app.use('/api/transaction', transactionRoute);
 
 /**
  * Production — serve frontend static files
- * In production: `npm run build` creates client/dist
- * The backend serves those files + SPA fallback
  */
 const frontendPath = path.join(__dirname, '..', 'client', 'dist');
 app.use(express.static(frontendPath));
 
-// SPA fallback for client-side routing
-app.use((req, res, next) => {
-    if (req.method === 'GET' && !req.path.startsWith('/api')) {
-        const indexPath = path.join(frontendPath, 'index.html');
-        res.sendFile(indexPath, (err) => {
-            if (err) next();
-        });
-    } else {
-        next();
-    }
+// API routes are handled above.
+// For any other GET request, serve the index.html (the Wildcard route)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('SERVER ERROR:', err);
+    res.status(500).json({
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
 });
 
 module.exports = app;

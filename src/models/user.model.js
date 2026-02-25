@@ -22,11 +22,11 @@ const userSchema = new mongoose.Schema({
         select: false            //! WARNING it will not come those quesry which is reated select:false
         //! it wil come whey we say 
     },
-    systemUser:{
-        type:String,
-        immutable:true,
-        default:false,
-        select:false
+    systemUser: {
+        type: Boolean,
+        immutable: true,
+        default: false,
+        select: false
     }
 },
     { timestamps: true }//NOTE - //! it will show hwen user updated tiem table  

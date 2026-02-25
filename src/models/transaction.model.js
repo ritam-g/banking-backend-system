@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { authMiddleware } = require("../middlewares/auth.middleware");
 
 const transactionSchema = new mongoose.Schema({
     fromAccount: {
