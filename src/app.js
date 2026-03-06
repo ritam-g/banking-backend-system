@@ -33,7 +33,7 @@ app.use(express.static(frontendPath));
 
 // API routes are handled above.
 // For any other GET request, serve the index.html (the Wildcard route)
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
